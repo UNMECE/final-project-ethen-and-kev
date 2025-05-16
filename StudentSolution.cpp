@@ -1,31 +1,21 @@
 #include "acequia_manager.h"
 #include <iostream>
 
-void solveProblems(AcequiaManager& manager)
-{
+void solveProblems(AcequiaManager& manager) {
     auto canals = manager.getCanals();
-    auto regions = manager.getRegions();
 
-    while(!manager.isSolved && manager.hour < manager.SimulationMax)
-    {
-        for(int i = 0; i < canals.size(); i++)
-        {
+    while (!manager.isSolved && manager.hour < 101) {
+        for (int i = 0; i < canals.size(); i++) {
             Region* dest = canals[i]->destinationRegion;
 
-            // If region is flooded, close canal
-            if(dest->isFlooded)
-            {
-                canals[i]->toggleOpen(false);
-            }
-            // If region needs water or is in drought, open canal at safe flow
-            else if(dest->isInDrought || dest->waterLevel < dest->waterNeed)
-            {
+            double deficit = dest->waterNeed - dest->waterLevel;
+
+            if (!dest->isFlooded && deficit > 0) {
                 canals[i]->toggleOpen(true);
-                canals[i]->setFlowRate(0.5); // Moderate flow to avoid flooding
-            }
-            // Otherwise, close canal
-            else
-            {
+
+                double flowRate = (deficit > 20) ? 0.9 : (deficit > 10) ? 0.6 : 0.3;
+                canals[i]->setFlowRate(flowRate);
+            } else {
                 canals[i]->toggleOpen(false);
             }
         }
